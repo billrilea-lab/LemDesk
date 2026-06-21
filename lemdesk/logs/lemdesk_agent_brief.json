@@ -1,0 +1,71 @@
+{
+  "brand": "LEMdesk",
+  "generated_at": "2026-06-21T22:36:53.936491+00:00",
+  "hub": "lemdesk",
+  "page_count": 28,
+  "topics": {
+    "mcp": 3,
+    "gordon": 4,
+    "sandbox": 9,
+    "docker-agent": 3,
+    "model-runner": 8,
+    "overview": 1
+  },
+  "dmr": {
+    "tcp_port": 12434,
+    "openai_compatible_base": "http://localhost:12434/engines/v1",
+    "ollama_compatible_base": "http://localhost:12434",
+    "container_base": "http://model-runner.docker.internal"
+  },
+  "cursor": {
+    "openai_api_key": "not-needed",
+    "override_openai_base_url_local": "http://localhost:12434/engines/v1",
+    "override_openai_base_url_lan": "http://<server-ip>:12434/engines/v1",
+    "anthropic_base_url_local": "http://localhost:12434",
+    "model_id_examples": [
+      "ai/devstral-small-2",
+      "ai/glm-4.7-flash",
+      "ai/llama3.2",
+      "ai/qwen2.5-coder",
+      "ai/qwen3-coder",
+      "ai/smollm2"
+    ],
+    "notes": [
+      "Use full model name with ai/ prefix",
+      "Enable host-side TCP in Docker Desktop Settings > AI",
+      "Add CORS origins for browser-based tools"
+    ]
+  },
+  "topology_patterns": [
+    "single_model_server",
+    "per_desktop_dmr",
+    "hybrid"
+  ],
+  "gordon_local_run": {
+    "path": "lemdesk/agents/lemdesk_supervisor.yaml",
+    "run": "lemdesk/scripts/run_supervisor.sh",
+    "note": "Local Docker Agent team using scraped KB \u2014 not Gordon SaaS"
+  },
+  "agent_commands": {
+    "scrape": "python3 scrape_lemdesk.py --backend auto --workers 8 --max-depth 2 --post-process",
+    "check_dmr": "lemdesk/scripts/check_dmr.sh",
+    "run_supervisor": "lemdesk/scripts/run_supervisor.sh",
+    "auto_pipeline": "python3 bot.py lemdesk-sync",
+    "auto_fast": "python3 bot.py lemdesk-sync --fast",
+    "search_kb": "python3 lemdesk_brief.py search 'sbx policy'",
+    "open_webui": "lemdesk/scripts/run_open_webui.sh",
+    "session_handoff": "python3 bot.py lemdesk-handoff",
+    "mcp_server": "lemdesk_mcp_server.py \u2014 see lemdesk/mcp/cursor_mcp.json.example",
+    "birdseed_with_local_model": "Cursor: Override OpenAI Base URL http://localhost:12434/engines/v1, model ai/glm-4.7-flash"
+  },
+  "rag": {
+    "docs_dir": "lemdesk/data/rag_docs",
+    "index_meta": "lemdesk/data/rag_index_meta.json"
+  },
+  "sync": {
+    "agents_sync": "https://github.com/CognitiveSand/agents_sync",
+    "cursor_paths": "~/.cursor/agents, skills, rules, commands, mcp.json",
+    "repo_agents": "lemdesk/agents/"
+  },
+  "rag_doc_count": 29
+}

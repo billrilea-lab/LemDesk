@@ -1,0 +1,35 @@
+{
+  "description": "Optional Git gist / cursor-sync enabled paths (Marcelo-Barella/cursor-sync style)",
+  "enabledPaths": [
+    ".cursor/agents/**",
+    ".cursor/skills/**",
+    ".cursor/rules/**",
+    ".cursor/commands/**",
+    ".cursor/mcp.json"
+  ],
+  "repo_paths_to_sync": [
+    "lemdesk/agents/**",
+    ".cursor/skills/lemdesk/**"
+  ],
+  "excludeGlobs": [
+    ".cursor/logs/**",
+    ".cursor/Session Storage/**",
+    ".cursor/**/*.db",
+    "lemdesk/incoming/**"
+  ],
+  "agents_sync": {
+    "url": "https://github.com/CognitiveSand/agents_sync",
+    "tools": ["cursor", "claude", "gemini", "antigravity", "codex", "copilot"],
+    "cursor_surfaces": [
+      "~/.cursor/agents",
+      "~/.cursor/skills",
+      "~/.cursor/rules",
+      "~/.cursor/commands",
+      "~/.cursor/mcp.json"
+    ]
+  },
+  "schedule": {
+    "intervalMin": 30,
+    "enabled": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-06-21T22:36:53.929329+00:00",
+  "source_pages": 4,
+  "surfaces": [
+    "Docker Desktop sidebar (Gordon)",
+    "CLI: docker ai",
+    "hub.docker.com Gordon icon",
+    "docs.docker.com Gordon icon"
+  ],
+  "capabilities": [
+    "Explain Docker concepts and commands",
+    "Search Docker docs and web",
+    "Write/modify Dockerfiles",
+    "Debug containers via logs",
+    "Manage containers, images, volumes, networks"
+  ],
+  "permission_model": "Proposes actions before execute; session-scoped approvals; reset each session",
+  "example_prompts": [
+    "404 Page not found | Docker Docs Get started Guides Manuals Reference Gordon Gordon, your AI assistant for Docker docs Search { if (theme === 'auto') document.firstElementChild.className = e.matches ?"
+  ],
+  "local_alternative": {
+    "path": "lemdesk/agents/lemdesk_supervisor.yaml",
+    "run": "lemdesk/scripts/run_supervisor.sh",
+    "note": "Local Docker Agent team using scraped KB \u2014 not Gordon SaaS"
+  }
+}

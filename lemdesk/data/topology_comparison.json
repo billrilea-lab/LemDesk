@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-06-21T22:36:53.929172+00:00",
+  "patterns": [
+    {
+      "id": "single_model_server",
+      "name": "Single model server",
+      "when_it_wins": "One powerful Mac (Apple Silicon); other rooms are thin clients",
+      "pros": [
+        "One model copy in RAM/GPU",
+        "Consistent model across all clients",
+        "Easier to run largest quant models"
+      ],
+      "cons": [
+        "LAN dependency and latency",
+        "Server must stay on",
+        "Firewall/TCP exposure needs care"
+      ],
+      "key_config": {
+        "server": "docker desktop enable model-runner --tcp 12434",
+        "client_cursor_base_url": "http://<server-lan-ip>:12434/engines/v1",
+        "cors": "Add client origins in Docker Desktop > AI > CORS"
+      }
+    },
+    {
+      "id": "per_desktop_dmr",
+      "name": "Per-desktop Model Runner",
+      "when_it_wins": "Each machine has enough RAM; minimal LAN coupling",
+      "pros": [
+        "No cross-room network dependency",
+        "localhost latency",
+        "Works if Wi-Fi is flaky"
+      ],
+      "cons": [
+        "Duplicate model pulls per machine",
+        "RAM/GPU multiplied",
+        "Models may differ between desks"
+      ],
+      "key_config": {
+        "every_desktop": "http://localhost:12434/engines/v1",
+        "sync": "Use agents_sync for agents/skills/MCP \u2014 not models"
+      }
+    },
+    {
+      "id": "hybrid",
+      "name": "Hybrid",
+      "when_it_wins": "Large models on server, fast small models local",
+      "pros": [
+        "Best of both for speed vs capability",
+        "Fallback if server offline"
+      ],
+      "cons": [
+        "Two endpoints to configure per client",
+        "More operational complexity"
+      ],
+      "key_config": {
+        "server_models": [
+          "ai/qwen3-coder",
+          "ai/devstral-small-2"
+        ],
+        "local_models": [
+          "ai/smollm2",
+          "ai/llama3.2"
+        ],
+        "sync": "agents_sync for shared agent YAML in lemdesk/agents/"
+      }
+    }
+  ],
+  "sandbox_network_note": "Sandboxes block host localhost by default. For SBX agents hitting LAN DMR: sbx policy allow network host:12434 and use http://host.docker.internal:12434 inside sandbox.",
+  "session_continuity": {
+    "models": "Shared DMR endpoint or per-machine localhost",
+    "agents_skills_mcp": "agents_sync or Git \u2014 ~/.cursor/ and lemdesk/agents/",
+    "project_context": "Git repo + logs/*_agent_context.md + session_handoff.md",
+    "chat_history": "Open WebUI on model server (port 3000) or cursor-sync extensions",
+    "open_webui": "lemdesk/scripts/run_open_webui.sh \u2192 http://localhost:3000",
+    "mcp_kb": "lemdesk_mcp_server.py \u2014 see lemdesk/mcp/cursor_mcp.json.example"
+  }
+}

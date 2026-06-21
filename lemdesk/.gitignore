@@ -1,0 +1,4 @@
+incoming/*.tmp
+incoming/.merge_lock
+data/rag_bm25.db
+data/rag_bm25.db-*

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "lemdesk-kb": {
+      "command": "python3",
+      "args": [
+        "/path/to/your/repo/lemdesk_mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

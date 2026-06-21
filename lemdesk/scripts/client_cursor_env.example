@@ -1,0 +1,22 @@
+# Cursor + LAN Model Runner — client configuration examples
+# Copy values into Cursor Settings > Models > OpenAI API Key
+
+# --- Per-desktop (localhost) ---
+OPENAI_API_KEY=not-needed
+CURSOR_OPENAI_BASE_URL=http://localhost:12434/engines/v1
+CURSOR_MODEL_EXAMPLE=ai/qwen2.5-coder
+
+# --- Thin client (model server on LAN) ---
+# Replace 192.168.1.50 with your DMR host IP
+CURSOR_OPENAI_BASE_URL_LAN=http://192.168.1.50:12434/engines/v1
+
+# --- Claude Code via DMR Anthropic-compatible API ---
+ANTHROPIC_BASE_URL=http://localhost:12434
+CLAUDE_MODEL_EXAMPLE=ai/qwen2.5-coder
+
+# --- Sandboxed agent reaching host DMR ---
+# On host: sbx policy allow network host:12434
+# Inside sandbox: http://host.docker.internal:12434
+
+# --- Verify server ---
+# lemdesk/scripts/check_dmr.sh

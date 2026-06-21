@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-06-21T22:36:53.941268+00:00",
+  "hub": "lemdesk",
+  "sources": [
+    {
+      "id": "gobabytrade",
+      "path": "data/gobabytrade/knowledge.json",
+      "topic": "crypto_trading",
+      "scraped_at": "2026-06-21T04:00:36.332252+00:00",
+      "page_count": 14
+    },
+    {
+      "id": "lemdesk",
+      "path": "lemdesk/data/knowledge.json",
+      "topic": "lemdesk",
+      "scraped_at": "2026-06-21T22:36:16.586927+00:00",
+      "page_count": 28
+    }
+  ],
+  "agents_path": "lemdesk/agents/",
+  "scripts_path": "lemdesk/scripts/"
+}

@@ -1,0 +1,11 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+lemdesk/incoming/*
+!lemdesk/incoming/.gitkeep
+lemdesk/data/rag_bm25.db
+lemdesk/data/raw/
+lemdesk/logs/auto_run.json

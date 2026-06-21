@@ -1,0 +1,106 @@
+# LEMdesk supervisor — local DMR models + BM25 RAG over scraped docs.
+# Run from repo root: docker agent run lemdesk/agents/lemdesk_supervisor.yaml
+# Requires: Docker Desktop DMR enabled, docker agent CLI, model pulled (e.g. ai/qwen2.5-coder)
+
+models:
+  dmr_main:
+    provider: dmr
+    model: ai/qwen2.5-coder
+    max_tokens: 4096
+    provider_opts:
+      context_size: 32768
+  dmr_fast:
+    provider: dmr
+    model: ai/smollm2
+    max_tokens: 2048
+
+rag:
+  lemdesk_kb:
+    tool:
+      description: "Scraped Docker AI docs — Model Runner, Sandboxes, Gordon, MCP, Docker Agent"
+    docs:
+      - lemdesk/data/rag_docs
+    strategies:
+      - type: bm25
+        database: lemdesk/data/rag_bm25.db
+        limit: 10
+        threshold: 0.25
+        chunking:
+          size: 1200
+          overlap: 150
+
+agents:
+  root:
+    model: dmr_main
+    description: LEMdesk supervisor — routes to specialists
+    instruction: |
+      You help set up Docker AI on a local network: Model Runner (DMR), Sandboxes (sbx),
+      Gordon-style workflows, and IDE integration (Cursor, Claude Code, Gemini).
+
+      Search lemdesk_kb RAG before answering setup questions.
+      Delegate to specialists when needed:
+      - dmr_expert — ports, base URLs, Cursor/Claude client settings
+      - sandbox_expert — sbx policy, isolation, host.docker.internal
+      - gordon_patterns — container debug, Dockerfile review (shell with approval)
+
+      BirdSeedTrade tie-in: python3 bot.py birdseed-review with Cursor pointed at
+      http://localhost:12434/engines/v1 and model ai/glm-4.7-flash or ai/qwen2.5-coder.
+
+      Session continuity: agents_sync for skills/MCP; Git for project; chat history not native in Cursor.
+    sub_agents: [dmr_expert, sandbox_expert, gordon_patterns]
+    toolsets:
+      - type: rag
+        ref: lemdesk_kb
+      - type: think
+      - type: mcp
+        ref: docker:duckduckgo
+        defer: true
+
+  dmr_expert:
+    model: dmr_main
+    description: Docker Model Runner and LAN client setup
+    instruction: |
+      Expert on Docker Model Runner. TCP port 12434.
+      OpenAI API: http://localhost:12434/engines/v1 (LAN: http://<server-ip>:12434/engines/v1)
+      Cursor: API key not-needed, Override OpenAI Base URL as above, models use ai/ prefix.
+
+      Enable: docker desktop enable model-runner --tcp 12434
+      Verify: lemdesk/scripts/check_dmr.sh
+      Models: ai/qwen2.5-coder, ai/qwen3-coder, ai/glm-4.7-flash, ai/devstral-small-2
+    toolsets:
+      - type: rag
+        ref: lemdesk_kb
+      - type: think
+
+  sandbox_expert:
+    model: dmr_main
+    description: Docker Sandboxes isolation and network policy
+    instruction: |
+      Expert on Docker Sandboxes (sbx). microVM isolation; filtered outbound network.
+      For DMR from sandbox: sbx policy allow network host:12434
+      Inside sandbox: http://host.docker.internal:12434
+      Launch: sbx run claude (from project dir). Supported: Claude, Codex, Copilot, Cursor, Gemini.
+    toolsets:
+      - type: rag
+        ref: lemdesk_kb
+      - type: think
+
+  gordon_patterns:
+    model: dmr_fast
+    description: Gordon-style Docker workflows (local patterns)
+    instruction: |
+      Gordon-inspired workflows with user approval for shell:
+      - Inspect containers, logs, image sizes
+      - Debug failing containers
+      - Dockerfile multi-stage, health checks, slim images
+      Real Gordon: docker ai in Docker Desktop. Local: this agent + shell toolset.
+    toolsets:
+      - type: rag
+        ref: lemdesk_kb
+      - type: filesystem
+      - type: shell
+      - type: think
+    commands:
+      check_dmr:
+        description: "Verify Model Runner is responding"
+        prompt: "Run lemdesk/scripts/check_dmr.sh and summarize"

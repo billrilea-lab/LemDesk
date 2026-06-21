@@ -1,0 +1,24 @@
+# Open WebUI → Docker Model Runner (shared chat UI across LAN rooms)
+# Usage: docker compose -f lemdesk/docker-compose.open-webui.yml up -d
+# Open: http://localhost:3000 (or http://<server-ip>:3000 from other machines)
+#
+# Prerequisite: DMR enabled with TCP on host port 12434
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: lemdesk-open-webui
+    ports:
+      - "${OPEN_WEBUI_PORT:-3000}:8080"
+    environment:
+      OPENAI_API_BASE_URL: http://host.docker.internal:12434/engines/v1
+      OPENAI_API_KEY: not-needed
+      WEBUI_AUTH: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-data:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  open-webui-data:
