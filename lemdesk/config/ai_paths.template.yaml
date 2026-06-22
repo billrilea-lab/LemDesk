@@ -14,8 +14,8 @@ volumes:
     # linux: /mnt/synology/AI
 
   local_fast:
-    description: Fast local SSD — caches and active project
-    mac: ~/AI-Local
+    description: Fast external SSD — Docker model cache, rag-cache (not internal SSD)
+    mac: /Volumes/GC-MM2/AI-Local
     windows: "C:/Users/%USERNAME%/AI-Local"
 
 # Logical paths — what agents/skills actually use (resolved per machine)
@@ -102,8 +102,8 @@ machines:
   Mac-Mini-2:
     os: darwin
     volumes:
-      synology: /Volumes/Synology/AI
-      local_fast: /Users/williamrilea/AI-Local
+      synology: /Volumes/docker/AI
+      local_fast: /Volumes/GC-MM2/AI-Local
 
   WIN-PC:
     os: windows

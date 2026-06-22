@@ -57,14 +57,32 @@ python3 lemdesk/scripts/ai_path_assistant.py wizard
 
 ---
 
-## Synology example
+## Mac Mini storage layout (small internal SSD)
+
+Keep the **228GB internal drive** for macOS + apps only. Heavy data goes external:
+
+| What | Where | Size |
+|------|-------|------|
+| Docker engine | `/Volumes/GC-MM2/Docker` | Docker Desktop → Settings → Resources |
+| DMR model weights | `~/.docker/models` → symlink to `/Volumes/GC-MM2/Docker/models` | ~15GB+ |
+| Fast cache | `~/AI-Local` → `/Volumes/GC-MM2/AI-Local` | rag-cache, scratch |
+| Shared AI corpus | `/Volumes/docker/AI` (NAS) | skills, rag, backups |
+
+One-shot relocate (stops Docker briefly):
+
+```bash
+./lemdesk/scripts/relocate_storage.sh --apply
+```
+
+---
 
 **Mac** (`Mac-Mini-2`):
 ```yaml
 machines:
   Mac-Mini-2:
     volumes:
-      synology: /Volumes/Synology/AI
+      synology: /Volumes/docker/AI
+      local_fast: /Volumes/GC-MM2/AI-Local
 ```
 
 **Windows** (`WIN-PC`):
