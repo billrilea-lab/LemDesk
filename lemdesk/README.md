@@ -9,6 +9,8 @@
 
 Start with Starter to prove local sync works. Upgrade to Pro for the version you actually live in.
 
+**Full setup guide:** [SETUP.md](SETUP.md) — Docker Desktop, Cursor, MCP, Pro dashboard.
+
 ## What you get
 
 | Piece | Purpose |
