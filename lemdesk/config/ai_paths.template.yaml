@@ -1,0 +1,116 @@
+# AI Path Registry — cross-machine logical paths for skills, agents, RAG, data.
+# Copy to ~/.config/lemdesk/ai_paths.yaml (Mac/Linux) or %APPDATA%/lemdesk/ai_paths.yaml (Windows)
+# Run: python3 lemdesk/scripts/ai_path_assistant.py wizard
+
+version: 1
+machine: auto  # auto = match hostname below, or set explicit name
+
+# Physical storage roots — map your Synology / network drives per machine
+volumes:
+  synology:
+    description: Synology NAS — shared AI corpus (skills, RAG, backups)
+    mac: /Volumes/Synology/AI
+    windows: "Z:/AI"
+    # linux: /mnt/synology/AI
+
+  local_fast:
+    description: Fast local SSD — caches and active project
+    mac: ~/AI-Local
+    windows: "C:/Users/%USERNAME%/AI-Local"
+
+# Logical paths — what agents/skills actually use (resolved per machine)
+logical:
+  skills:
+    description: Cursor / Claude skills
+    paths:
+      - "{home}/.cursor/skills"
+      - "{volume:synology}/skills"
+    primary: 0  # index into paths — first that exists wins unless forced
+
+  agents:
+    description: Cursor agents
+    paths:
+      - "{home}/.cursor/agents"
+      - "{volume:synology}/agents"
+
+  rules:
+    description: Cursor rules
+    paths:
+      - "{home}/.cursor/rules"
+      - "{volume:synology}/rules"
+
+  commands:
+    description: Cursor slash commands
+    paths:
+      - "{home}/.cursor/commands"
+
+  mcp:
+    description: Cursor MCP config file
+    paths:
+      - "{home}/.cursor/mcp.json"
+
+  rag:
+    description: Master RAG corpus (canonical, often on NAS)
+    paths:
+      - "{volume:synology}/rag"
+      - "{project}/lemdesk/data/rag_docs"
+
+  rag_cache:
+    description: Local RAG cache (fast rebuild)
+    paths:
+      - "{project}/lemdesk/data/rag_docs"
+      - "{volume:local_fast}/rag-cache"
+
+  knowledge:
+    description: Scraped knowledge JSON
+    paths:
+      - "{project}/lemdesk/data/knowledge.json"
+      - "{volume:synology}/lemdesk/knowledge.json"
+
+  data:
+    description: LEMdesk data directory
+    paths:
+      - "{project}/lemdesk/data"
+      - "{volume:synology}/lemdesk/data"
+
+  logs:
+    description: Handoff, briefs, desk packs
+    paths:
+      - "{project}/lemdesk/logs"
+      - "{volume:synology}/lemdesk/logs"
+
+  secrets:
+    description: API keys — never commit
+    paths:
+      - "{home}/.config/lemdesk/secrets.env"
+      - "{home}/.config/cursor-crypto/secrets.env"
+
+  backups:
+    description: Desk backups tarball destination
+    paths:
+      - "{volume:synology}/backups/lemdesk"
+      - "{home}/Backups/lemdesk"
+
+  projects:
+    description: Active code workspaces root
+    paths:
+      - "~/Projects"
+      - "{volume:synology}/dev"
+
+# Per-machine volume overrides (hostname from `hostname -s` / COMPUTERNAME)
+machines:
+  Mac-Mini-2:
+    os: darwin
+    volumes:
+      synology: /Volumes/Synology/AI
+      local_fast: /Users/williamrilea/AI-Local
+
+  WIN-PC:
+    os: windows
+    volumes:
+      synology: "Z:/AI"
+      local_fast: "C:/Users/williamrilea/AI-Local"
+
+# Optional: force primary path index per logical key on this machine only
+# overrides:
+#   rag: 1  # use paths[1] even if paths[0] exists

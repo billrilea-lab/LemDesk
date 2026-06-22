@@ -4,20 +4,20 @@
 
 ## Last session
 
-- **Updated:** 2026-06-21T22:36:53.987158+00:00
+- **Updated:** 2026-06-22T04:28:45.183102+00:00
 - **Git branch:** main
 - **Git commit:** eb5841d
 - **Workspace:** /Users/williamrilea/Cursor- Crypto
 
 ## What we were doing
 
-LEMdesk auto-refresh — corpus + RAG + briefs updated.
+LEMdesk — 68, 7, 4
 
 ## Active commands / next steps
 
-- Read lemdesk/logs/session_handoff.md
-- MCP: lemdesk_mcp_server.py or bot.py lemdesk-search
-- Supervisor: lemdesk/scripts/run_supervisor.sh
+- `python3 bot.py lemdesk-health`
+- Read `lemdesk/logs/lemdesk_agent_context.md`
+- `./lemdesk/scripts/check_dmr.sh`
 
 ## LEMdesk state
 

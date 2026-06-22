@@ -54,19 +54,6 @@ python3 bot.py lemdesk-handoff --focus "what you were doing"
 # → lemdesk/logs/session_handoff.md
 ```
 
-## LEMdesk Pro (demo)
-
-Menu bar health score, local dashboard, and Smart Handoff desk packs:
-
-```bash
-python3 -m lemdesk_pro health
-python3 -m lemdesk_pro smart-handoff
-python3 -m lemdesk_pro menubar          # macOS menu bar + http://127.0.0.1:8765
-./lemdesk/scripts/run_pro.sh
-```
-
-Pro waitlist: [lemdev.com/pricing.html](https://lemdev.com/pricing.html)
-
 ## MCP (Cursor)
 
 Copy `lemdesk/mcp/cursor_mcp.json.example` into `~/.cursor/mcp.json` and set the full path to `lemdesk_mcp_server.py`.

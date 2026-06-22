@@ -64,6 +64,30 @@ def get_lemdesk_setup_facts() -> str:
 
 
 @mcp.tool()
+def resolve_ai_path(logical_name: str) -> str:
+    """Resolve a logical AI path (skills, agents, rag, secrets, data, backups) on this machine.
+
+    Args:
+        logical_name: e.g. skills, rag, knowledge, secrets, backups
+    """
+    from lemdesk.path_registry import resolve_logical, resolve_all
+
+    p = resolve_logical(logical_name)
+    if p is None:
+        all_p = resolve_all()
+        return f"Unknown: {logical_name}. Known: {', '.join(sorted(all_p.keys()))}"
+    return json.dumps({"logical": logical_name, "path": str(p), "exists": p.exists()}, indent=2)
+
+
+@mcp.tool()
+def ai_path_doctor() -> str:
+    """Check all AI paths (skills, agents, RAG, Synology volumes) — reports missing mounts."""
+    from lemdesk.path_registry import doctor
+
+    return json.dumps(doctor(), indent=2)
+
+
+@mcp.tool()
 def list_lemdesk_topics() -> str:
     """List topic counts from the LEMdesk knowledge corpus."""
     k = load_knowledge()

@@ -37,8 +37,13 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _infer_focus() -> str:
     brief = _load_json(AGENT_BRIEF)
     topics = brief.get("top_topics") or brief.get("topics") or []
+    if isinstance(topics, dict):
+        topics = list(topics.values())
     if topics:
-        names = [t.get("title") or t.get("name") or str(t) for t in topics[:3]]
+        names = [
+            (t.get("title") or t.get("name") or str(t)) if isinstance(t, dict) else str(t)
+            for t in list(topics)[:3]
+        ]
         return f"LEMdesk — {', '.join(names)}"
     k = load_knowledge()
     pages = k.get("pages") or {}
