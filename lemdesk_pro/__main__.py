@@ -19,6 +19,11 @@ def main() -> int:
     sh.add_argument("--notes", default="")
     sh.add_argument("--next-steps", default="")
 
+    du = sub.add_parser("desk-up", help="Morning startup: Docker, DMR, mounts")
+    du.add_argument("--sync", action="store_true")
+    du.add_argument("--mount-nas", action="store_true")
+    du.add_argument("--json", action="store_true")
+
     mb = sub.add_parser("menubar", help="Menu bar app + dashboard")
     mb.add_argument("--port", type=int, default=8765)
     mb.add_argument("--cli", action="store_true", help="Headless dashboard only")
@@ -50,6 +55,16 @@ def main() -> int:
         for label, path in paths.items():
             print(f"{label}: {path}")
         return 0
+
+    if args.cmd == "desk-up":
+        from lemdesk_pro.desk_up import run_desk_up
+
+        print("=== LEMdesk Desk Up ===")
+        report = run_desk_up(sync=args.sync, open_nas=args.mount_nas)
+        if args.json:
+            print(json.dumps(report, indent=2))
+        health = report.get("health") or {}
+        return 0 if health.get("score", 0) >= 40 else 1
 
     if args.cmd == "menubar":
         from lemdesk_pro.menubar import run_cli_fallback, run_menubar

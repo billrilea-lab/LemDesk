@@ -77,6 +77,7 @@ def run_menubar(port: int = DEFAULT_PORT, open_dashboard: bool = True) -> None:
             super().__init__("LEMdesk", quit_button=None)
             self.port = port
             self.menu = [
+                rumps.MenuItem("Desk Up", callback=self.desk_up),
                 rumps.MenuItem("Open Dashboard", callback=self.open_dashboard),
                 rumps.MenuItem("Desk Health", callback=self.show_health),
                 None,
@@ -103,6 +104,19 @@ def run_menubar(port: int = DEFAULT_PORT, open_dashboard: bool = True) -> None:
 
         def open_dashboard(self, _: object) -> None:
             webbrowser.open(f"http://127.0.0.1:{self.port}/")
+
+        def desk_up(self, _: object) -> None:
+            from lemdesk_pro.desk_up import run_desk_up
+
+            rumps.notification("LEMdesk Pro", "Desk Up", "Checking Docker, DMR, and mounts…")
+            run_desk_up(open_nas=True)
+            self._refresh_title()
+            h = run_health_check()
+            rumps.notification(
+                "LEMdesk Pro",
+                f"Desk {h['score']}/100 ({h['grade']})",
+                h["summary"][:120],
+            )
 
         def show_health(self, _: object) -> None:
             h = run_health_check()

@@ -217,6 +217,18 @@ def _check_incoming() -> dict[str, Any]:
             "detail": "Inbox clear",
             "pending": 0,
         }
+    # Scrape staging files are normal when corpus is fresh — don't dock the score.
+    k_path = DATA / "knowledge.json"
+    age_h = _file_age_hours(k_path) if k_path.exists() else 999
+    if age_h < 168:
+        return {
+            "id": "incoming",
+            "label": "Scrape staging",
+            "status": "ok",
+            "score": 10,
+            "detail": f"{pending} staging file(s) — corpus fresh ({age_h:.0f}h ago)",
+            "pending": pending,
+        }
     return {
         "id": "incoming",
         "label": "Agent sync inbox",
@@ -266,6 +278,7 @@ def run_health_check() -> dict[str, Any]:
         "git_commit": commit,
         "checks": checks,
         "commands": {
+            "desk_up": "python3 bot.py lemdesk-desk-up",
             "sync": "python3 bot.py lemdesk-sync --fast",
             "smart_handoff": "python3 bot.py lemdesk-smart-handoff",
             "health": "python3 bot.py lemdesk-health",
