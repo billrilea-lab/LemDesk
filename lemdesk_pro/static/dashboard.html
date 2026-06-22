@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LEMdesk Pro — Desk Health</title>
+  <style>
+    :root {
+      --bg: #080a0e;
+      --card: #111820;
+      --text: #eef2f7;
+      --muted: #8b9aab;
+      --accent: #3dd6c3;
+      --warn: #f4a261;
+      --fail: #e76f51;
+      --ok: #3dd6c3;
+      --border: #243040;
+      --mono: "SF Mono", "Cascadia Code", Consolas, monospace;
+      --font: system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(61,214,195,.12), transparent 60%);
+    }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+    .logo span { color: var(--accent); }
+    .badge { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    h1 { margin: .25rem 0 0; font-size: 1.75rem; }
+    .score-ring {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: conic-gradient(var(--accent) calc(var(--pct) * 1%), var(--border) 0);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .score-inner {
+      width: 96px; height: 96px; border-radius: 50%; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .score-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .score-grade { font-size: .85rem; color: var(--muted); }
+    .hero { display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem; }
+    .summary { color: var(--muted); max-width: 36rem; margin: .5rem 0 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.15rem;
+    }
+    .card h3 { margin: 0 0 .35rem; font-size: .95rem; }
+    .card p { margin: 0; font-size: .85rem; color: var(--muted); }
+    .status { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: .15rem .45rem; border-radius: 4px; margin-bottom: .5rem; }
+    .status.ok { background: rgba(61,214,195,.15); color: var(--ok); }
+    .status.warn { background: rgba(244,162,97,.15); color: var(--warn); }
+    .status.fail { background: rgba(231,111,81,.15); color: var(--fail); }
+    .meta { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: .8rem; color: var(--muted); margin-top: 2rem; font-family: var(--mono); }
+    .prompt-box {
+      margin-top: 2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .prompt-head { padding: .75rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .prompt-head h2 { margin: 0; font-size: .95rem; }
+    pre {
+      margin: 0; padding: 1rem; font-family: var(--mono); font-size: .78rem; line-height: 1.5;
+      overflow-x: auto; max-height: 280px; color: var(--muted);
+    }
+    button {
+      background: var(--accent); color: var(--bg); border: none; border-radius: 8px;
+      padding: .45rem .85rem; font-weight: 700; font-size: .8rem; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    .loading { color: var(--muted); text-align: center; padding: 4rem; }
+    footer { margin-top: 3rem; text-align: center; font-size: .8rem; color: var(--muted); }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <div class="badge">LEMdesk Pro · local</div>
+        <h1>Desk Health</h1>
+      </div>
+      <div class="logo">LEM<span>desk</span></div>
+    </header>
+    <div id="app" class="loading">Loading desk status…</div>
+    <footer>
+      <a href="https://lemdev.com/pricing.html">LEMdesk Pro</a> ·
+      <a href="https://github.com/billrilea-lab/LemDesk">GitHub</a>
+    </footer>
+  </div>
+  <script>
+    const statusClass = (s) => s === 'ok' ? 'ok' : s === 'fail' ? 'fail' : 'warn';
+
+    async function load() {
+      const app = document.getElementById('app');
+      try {
+        const [healthRes, packRes] = await Promise.all([
+          fetch('/health'),
+          fetch('/desk-pack').catch(() => null),
+        ]);
+        const health = await healthRes.json();
+        let pack = null;
+        if (packRes && packRes.ok) pack = await packRes.json();
+
+        const pct = health.score || 0;
+        app.innerHTML = `
+          <div class="hero">
+            <div class="score-ring" style="--pct: ${pct}">
+              <div class="score-inner">
+                <div class="score-num">${pct}</div>
+                <div class="score-grade">${health.grade || '—'}</div>
+              </div>
+            </div>
+            <div>
+              <p class="summary">${health.summary || ''}</p>
+              <div class="meta">
+                <span>${health.git_branch || '?'} @ ${health.git_commit || '?'}</span>
+                <span>${(health.generated_at || '').slice(0, 19)}Z</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid">
+            ${(health.checks || []).map(c => `
+              <div class="card">
+                <span class="status ${statusClass(c.status)}">${c.status}</span>
+                <h3>${c.label}</h3>
+                <p>${c.detail}</p>
+              </div>
+            `).join('')}
+          </div>
+          ${pack && pack.suggested_prompt ? `
+            <div class="prompt-box">
+              <div class="prompt-head">
+                <h2>Smart Handoff prompt</h2>
+                <button type="button" id="copy-btn">Copy</button>
+              </div>
+              <pre id="prompt-text">${escapeHtml(pack.suggested_prompt)}</pre>
+            </div>
+          ` : `
+            <p class="summary" style="margin-top:2rem">Run <code>python3 bot.py lemdesk-smart-handoff</code> to generate a desk pack.</p>
+          `}
+        `;
+        const copyBtn = document.getElementById('copy-btn');
+        if (copyBtn && pack) {
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(pack.suggested_prompt);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+          };
+        }
+      } catch (e) {
+        app.innerHTML = '<p class="loading">Could not reach LEMdesk Pro server. Run: python3 bot.py lemdesk-pro</p>';
+      }
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    load();
+    setInterval(load, 15000);
+  </script>
+</body>
+</html>

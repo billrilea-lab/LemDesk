@@ -1,6 +1,13 @@
 # LEMdesk
 
-**LEMdesk — same desk on any room.** Free LAN kit for local models, agent sync, knowledge search, and session handoff. By [LEMdev](https://lemdev.com).
+**LEMdesk — same desk on any room.** By [LEMdev](https://lemdev.com).
+
+| Edition | What it is |
+|---------|------------|
+| **Starter** (free) | Open-source **sample kit** — CLI sync, RAG, MCP, manual handoff markdown |
+| **Pro** ($19/mo) | The **full desk** — menu bar health, Smart Handoff desk packs, live dashboard |
+
+Start with Starter to prove local sync works. Upgrade to Pro for the version you actually live in.
 
 ## What you get
 
@@ -44,6 +51,19 @@ Session handoff before changing rooms:
 python3 bot.py lemdesk-handoff --focus "what you were doing"
 # → lemdesk/logs/session_handoff.md
 ```
+
+## LEMdesk Pro (demo)
+
+Menu bar health score, local dashboard, and Smart Handoff desk packs:
+
+```bash
+python3 -m lemdesk_pro health
+python3 -m lemdesk_pro smart-handoff
+python3 -m lemdesk_pro menubar          # macOS menu bar + http://127.0.0.1:8765
+./lemdesk/scripts/run_pro.sh
+```
+
+Pro waitlist: [lemdev.com/pricing.html](https://lemdev.com/pricing.html)
 
 ## MCP (Cursor)
 
