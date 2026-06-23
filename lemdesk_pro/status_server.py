@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Callable
 
+import httpx
+
 STATIC = Path(__file__).parent / "static"
 DEFAULT_PORT = 8765
 
@@ -63,12 +65,23 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_error(404)
 
 
+def _port_serves_lemdesk(port: int) -> bool:
+    try:
+        r = httpx.get(f"http://127.0.0.1:{port}/health", timeout=1.5)
+        if r.status_code != 200:
+            return False
+        data = r.json()
+        return data.get("product") == "LEMdesk Pro"
+    except Exception:
+        return False
+
+
 def start_status_server(
     port: int = DEFAULT_PORT,
     get_health: Callable[[], dict] | None = None,
     get_desk_pack: Callable[[], dict | None] | None = None,
-) -> ThreadingHTTPServer:
-    """Start background HTTP server; returns server instance."""
+) -> ThreadingHTTPServer | None:
+    """Start background HTTP server; returns server or None if port already has LEMdesk."""
     from lemdesk_pro.desk_health import run_health_check
     from lemdesk_pro.smart_handoff import DESK_PACK
 
@@ -87,7 +100,12 @@ def start_status_server(
     _Handler.get_health = staticmethod(_health)
     _Handler.get_desk_pack = staticmethod(_pack)
 
-    server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
+    except OSError as exc:
+        if exc.errno in (48, 98) and _port_serves_lemdesk(port):
+            return None
+        raise
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     return server

@@ -22,6 +22,8 @@ def main() -> int:
     du = sub.add_parser("desk-up", help="Morning startup: Docker, DMR, mounts")
     du.add_argument("--sync", action="store_true")
     du.add_argument("--mount-nas", action="store_true")
+    du.add_argument("--heal", action="store_true")
+    du.add_argument("--mirror-nas", action="store_true")
     du.add_argument("--json", action="store_true")
 
     mb = sub.add_parser("menubar", help="Menu bar app + dashboard")
@@ -60,7 +62,12 @@ def main() -> int:
         from lemdesk_pro.desk_up import run_desk_up
 
         print("=== LEMdesk Desk Up ===")
-        report = run_desk_up(sync=args.sync, open_nas=args.mount_nas)
+        report = run_desk_up(
+            sync=args.sync,
+            open_nas=args.mount_nas,
+            heal=args.heal,
+            mirror_nas=args.mirror_nas,
+        )
         if args.json:
             print(json.dumps(report, indent=2))
         health = report.get("health") or {}

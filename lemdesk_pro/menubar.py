@@ -10,9 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PORT = 8765
+DASHBOARD_FLAG = Path.home() / ".config" / "lemdesk" / ".dashboard_opened_today"
 
 
-def _run_sync() -> None:
+def _run_sync(*, mirror: bool = True) -> None:
     bot = ROOT / "bot.py"
     auto = ROOT / "lemdesk_auto.py"
     if bot.exists():
@@ -32,7 +33,6 @@ def _run_sync() -> None:
 
 
 def run_cli_fallback(port: int = DEFAULT_PORT, open_browser: bool = False) -> None:
-    """Headless mode when rumps is unavailable (Linux/SSH)."""
     from lemdesk_pro.desk_health import run_health_check
     from lemdesk_pro.status_server import start_status_server
 
@@ -52,17 +52,29 @@ def run_cli_fallback(port: int = DEFAULT_PORT, open_browser: bool = False) -> No
         print("\nStopped.")
 
 
-def run_menubar(port: int = DEFAULT_PORT, open_dashboard: bool = True) -> None:
+def run_menubar(
+    port: int = DEFAULT_PORT,
+    open_dashboard: bool = True,
+    *,
+    dev_mode: bool = False,
+) -> None:
     if platform.system() != "Darwin":
         print("Menu bar is macOS-only — starting CLI dashboard instead.")
         run_cli_fallback(port, open_browser=open_dashboard)
+        return
+
+    from lemdesk_pro.instance_lock import acquire
+    from lemdesk_pro.license import require_pro_license
+
+    require_pro_license(dev_mode=dev_mode)
+    if not acquire():
+        print("LEMdesk Pro already running — check menu bar or quit the other instance.")
         return
 
     try:
         import rumps
     except ImportError:
         print("Install menu bar deps: pip install rumps")
-        print("Starting CLI dashboard instead.")
         run_cli_fallback(port, open_browser=open_dashboard)
         return
 
@@ -92,13 +104,15 @@ def run_menubar(port: int = DEFAULT_PORT, open_dashboard: bool = True) -> None:
             h = run_health_check()
             self.title = f" {h['score']}{h['grade']}"
 
-        @rumps.timer(3)
+        @rumps.timer(4)
         def boot_dashboard(self, sender: object) -> None:
-            if open_dashboard:
+            if open_dashboard and not DASHBOARD_FLAG.exists():
+                DASHBOARD_FLAG.parent.mkdir(parents=True, exist_ok=True)
+                DASHBOARD_FLAG.touch()
                 webbrowser.open(f"http://127.0.0.1:{self.port}/")
             sender.stop()
 
-        @rumps.timer(30)
+        @rumps.timer(60)
         def poll_health(self, _: object) -> None:
             self._refresh_title()
 
@@ -108,44 +122,40 @@ def run_menubar(port: int = DEFAULT_PORT, open_dashboard: bool = True) -> None:
         def desk_up(self, _: object) -> None:
             from lemdesk_pro.desk_up import run_desk_up
 
-            rumps.notification("LEMdesk Pro", "Desk Up", "Checking Docker, DMR, and mounts…")
-            run_desk_up(open_nas=True)
+            rumps.notification("LEMdesk Pro", "Desk Up", "Healing desk…")
+            run_desk_up(open_nas=True, heal=True, mirror_nas=True)
             self._refresh_title()
             h = run_health_check()
-            rumps.notification(
-                "LEMdesk Pro",
-                f"Desk {h['score']}/100 ({h['grade']})",
-                h["summary"][:120],
-            )
+            rumps.notification("LEMdesk Pro", f"Desk {h['score']}/100", h["summary"][:120])
 
         def show_health(self, _: object) -> None:
             h = run_health_check()
+            lines = [c["detail"] for c in h.get("checks", [])[:6]]
             rumps.alert(
                 title=f"Desk Health — {h['score']}/100 ({h['grade']})",
-                message=h["summary"],
+                message=h["summary"] + "\n\n" + "\n".join(lines),
                 ok="OK",
             )
 
         def sync_now(self, _: object) -> None:
             rumps.notification("LEMdesk Pro", "Sync started", "lemdesk-sync --fast")
             _run_sync()
-            rumps.Timer(self._sync_done, 8).start()
+            rumps.Timer(self._sync_done, 12).start()
 
         def _sync_done(self, _: object) -> None:
             self._refresh_title()
-            rumps.notification("LEMdesk Pro", "Sync complete", "Corpus + handoff updated")
+            rumps.notification("LEMdesk Pro", "Sync complete", "Corpus + NAS mirror updated")
 
         def smart_handoff(self, _: object) -> None:
             paths = write_smart_handoff()
             self._refresh_title()
             _copy_prompt_to_clipboard(paths["desk_prompt"])
-            rumps.notification(
-                "LEMdesk Pro",
-                "Smart Handoff ready",
-                "Prompt copied — paste in your next Cursor room",
-            )
+            rumps.notification("LEMdesk Pro", "Smart Handoff", "Prompt copied to clipboard")
 
         def quit_app(self, _: object) -> None:
+            from lemdesk_pro.instance_lock import release
+
+            release()
             rumps.quit_application()
 
     LemdeskProApp().run()

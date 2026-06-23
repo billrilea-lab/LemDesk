@@ -142,6 +142,69 @@ def _hostname() -> str:
     )
 
 
+def discover_nas_ai() -> Path | None:
+    """Find mounted Synology docker share (docker, docker-1, etc.)."""
+    candidates: list[Path] = []
+    volumes = Path("/Volumes")
+    if volumes.is_dir():
+        for mount in sorted(volumes.iterdir()):
+            if not mount.is_dir():
+                continue
+            name = mount.name.lower()
+            if name in ("macintosh hd", "recovery", "timemachinebackups"):
+                continue
+            if name == "docker":
+                direct = mount / "AI"
+                if direct.is_dir():
+                    candidates.append(direct)
+                continue
+            for suffix in ("", "-1", "-2"):
+                sub = f"docker{suffix}" if suffix else "docker"
+                p = mount / sub / "AI"
+                if p.is_dir():
+                    candidates.append(p)
+            direct = mount / "AI"
+            if direct.is_dir():
+                candidates.append(direct)
+    # Config override first
+    try:
+        cfg = load_config()
+        ctx = build_context(cfg)
+        configured = ctx.get("volumes", {}).get("synology")
+        if configured:
+            cp = Path(configured)
+            if cp.is_dir():
+                return cp.resolve()
+    except Exception:
+        pass
+    return candidates[0].resolve() if candidates else None
+
+
+def patch_machine_nas_path(cfg: dict[str, Any] | None = None) -> str | None:
+    """Update ai_paths.yaml synology volume if we discovered a live mount."""
+    if yaml is None:
+        return None
+    nas = discover_nas_ai()
+    if not nas:
+        return None
+    c = cfg or load_config()
+    path = config_paths()[0]
+    if not path.exists():
+        return None
+    data = yaml.safe_load(path.read_text()) or {}
+    host = _hostname()
+    machines = data.setdefault("machines", {})
+    prof = machines.setdefault(host, {"os": "darwin", "volumes": {}})
+    vols = prof.setdefault("volumes", {})
+    if vols.get("synology") != str(nas):
+        vols["synology"] = str(nas)
+        if "synology" in (data.get("volumes") or {}):
+            data["volumes"]["synology"]["mac"] = str(nas)
+        path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+        return str(nas)
+    return None
+
+
 def _expand_token(token: str, ctx: dict[str, Any]) -> str:
     if token == "home":
         return str(Path.home())

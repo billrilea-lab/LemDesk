@@ -159,6 +159,16 @@ def run_auto(
     results["session_handoff"] = str(handoff)
     results["steps"].append("handoff")
 
+    try:
+        from lemdesk.nas_mirror import mirror_to_nas
+
+        mirror = mirror_to_nas(ROOT)
+        results["nas_mirror"] = mirror
+        if mirror.get("ok"):
+            results["steps"].append("nas_mirror")
+    except Exception as exc:
+        results["nas_mirror"] = {"ok": False, "error": str(exc)}
+
     elapsed = time.monotonic() - t0
     results["elapsed_sec"] = round(elapsed, 1)
     results["generated_at"] = datetime.now(timezone.utc).isoformat()

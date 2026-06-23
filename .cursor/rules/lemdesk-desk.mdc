@@ -1,0 +1,44 @@
+---
+description: >-
+  LEMdesk desk continuity — read handoff files at session start, use MCP tools
+  for local knowledge, and keep context when switching Cursor rooms. Apply on
+  every new chat in LEMdesk/crypto workspaces.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# LEMdesk desk rule
+
+You are working on a **LEMdesk** machine — local Docker Model Runner + searchable doc corpus + cross-room handoff.
+
+## At the start of every new chat
+
+1. Read **`lemdesk/logs/desk_handoff_prompt.md`** if it exists (Smart Handoff).
+2. Else read **`lemdesk/logs/session_handoff.md`**.
+3. For setup facts: **`lemdesk/data/setup_facts.json`** or MCP `get_lemdesk_setup_facts`.
+4. Run mental check: DMR at `http://localhost:12434/engines/v1`, MCP `lemdesk-kb` available.
+
+## When the user switches rooms or says "pick up" / "handoff" / "desk"
+
+- MCP: `get_lemdesk_handoff()` or read `lemdesk/logs/session_handoff.md`
+- Search docs: `search_lemdesk_docs(query)` before guessing Docker/Cursor setup
+- Paths: `ai_path_doctor()` or `python3 bot.py ai-paths doctor`
+
+## Before ending a session
+
+Suggest:
+
+```bash
+python3 bot.py lemdesk-smart-handoff --focus "what we did"
+```
+
+## Storage (Mac Mini)
+
+- Models on **GC-MM2**, not internal SSD — see `.cursor/skills/docker-mac-storage`
+- NAS corpus: `/Volumes/docker/AI` when mounted
+- Morning: `python3 bot.py lemdesk-desk-up --heal`
+
+## Pro
+
+Menu bar + dashboard: `python3 bot.py lemdesk-pro`
